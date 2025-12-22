@@ -1,0 +1,150 @@
+[build-system]
+requires = ["uv_build>=0.9.13,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+  "ruff>=0.8.0",
+  "mypy>=1.13.0",
+  "bandit[toml]>=1.8.0",
+  "pip-audit>=2.7.0",
+  "pytest>=8.0.0"
+]
+
+[project]
+name = "genai-services"
+version = "0.1.0"
+description = "GenAI Services FastAPI Application with Streamlit for building and deploying AI models"
+readme = "README.md"
+authors = [
+  {name = "Shuaib Ahmed", email = "shuaib.ahmed45@gmail.com"}
+]
+requires-python = ">=3.11"
+dependencies = [
+  "loguru>=0.7.3",
+  "fastapi==0.115.6",
+  "fastapi-cli==0.0.7",
+  "starlette==0.41.3",
+  "streamlit==1.41.1",
+  "uv==0.5.18"
+]
+
+[project.scripts]
+genai-services = "genai_services:main"
+
+# =============================================================================
+# Bandit Configuration
+# =============================================================================
+[tool.bandit]
+exclude_dirs = [".venv", "tests", "venv"]
+skips = ["B101"] # Skip assert warnings (used in tests)
+
+# =============================================================================
+# Mypy Configuration
+# =============================================================================
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unreachable = true
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+# Import discovery
+namespace_packages = true
+explicit_package_bases = true
+# Caching
+cache_dir = ".mypy_cache"
+
+[[tool.mypy.overrides]]
+module = ["tests.*", "src.*"]
+disallow_untyped_defs = false
+follow_untyped_imports = true
+
+# =============================================================================
+# Pytest Configuration
+# =============================================================================
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+# =============================================================================
+# Ruff Configuration
+# =============================================================================
+[tool.ruff]
+# Same as Black
+line-length = 88
+indent-width = 4
+# Target Python 3.11
+target-version = "py311"
+# Exclude common directories
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pyenv",
+  ".pytest_cache",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv"
+]
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings
+quote-style = "double"
+# Like Black, indent with spaces
+indent-style = "space"
+# Like Black, respect magic trailing commas
+skip-magic-trailing-comma = false
+# Like Black, automatically detect the appropriate line ending
+line-ending = "auto"
+# Enable auto-formatting of code examples in docstrings
+docstring-code-format = true
+
+[tool.ruff.lint]
+# Enable comprehensive lint rules
+select = [
+  "E", # pycodestyle errors
+  "W", # pycodestyle warnings
+  "F", # Pyflakes
+  "I", # isort
+  "B", # flake8-bugbear
+  "C4", # flake8-comprehensions
+  "UP", # pyupgradeu
+  "S", # flake8-bandit (security)
+  "C90" # mccabe complexity
+]
+ignore = [
+  "E501", # line too long (handled by formatter)
+  "S101" # use of assert (ok in tests)
+]
+# Allow fix for all enabled rules
+fixable = ["ALL"]
+unfixable = []
+# Allow unused variables when underscore-prefixed
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.isort]
+known-first-party = ["genai_services"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
