@@ -5,13 +5,17 @@ A workspace for building generative AI services with FastAPI and Streamlit, mana
 ## Project Structure
 
 ```
-genai-services-fastapi/
-├── src/
-│   └── genai_services/     # Main package
-│       └── __init__.py
-├── tests/                  # Test files
-├── pyproject.toml          # Project config & dependencies
-└── README.md
+.
+├── src
+│   └── genai_services
+│       ├── __init__.py
+│       └── tinyllama.py
+├── tests
+│   ├── __init__.py
+│   └── test_main.py
+├── pyproject.toml
+├── README.md
+└── uv.lock
 ```
 
 ## Requirements
