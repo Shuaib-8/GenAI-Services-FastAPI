@@ -19,14 +19,17 @@ readme = "README.md"
 authors = [
   {name = "Shuaib Ahmed", email = "shuaib.ahmed45@gmail.com"}
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.12"
 dependencies = [
   "loguru>=0.7.3",
   "fastapi==0.115.6",
   "fastapi-cli==0.0.7",
   "starlette==0.41.3",
   "streamlit==1.41.1",
-  "uv==0.5.18"
+  "uv==0.5.18",
+  "torch>=2.0.0",
+  "transformers>=4.40.0",
+  "accelerate>=0.27.0"
 ]
 
 [project.scripts]
@@ -66,6 +69,8 @@ follow_untyped_imports = true
 # =============================================================================
 # Pytest Configuration
 # =============================================================================
+[tool.pytest]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
