@@ -6,6 +6,7 @@ model with Hugging Face Transformers, optimized for Mac M4 using MPS backend.
 
 import torch
 from loguru import logger
+from accelerate import Accelerator
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Model configuration
@@ -44,12 +45,14 @@ class TinyLlamaChat:
         Returns:
             torch.device: MPS device if available on Apple Silicon, otherwise CPU.
         """
-        if torch.backends.mps.is_available():
-                logger.info("MPS (Metal Performance Shaders) device detected - using Apple Silicon GPU")
-                return torch.device("mps")
-        
-        logger.warning("MPS not available - falling back to CPU")
-        return torch.device("cpu")
+        accelerator = Accelerator()
+
+        if accelerator.device.type == "mps":
+            logger.info("MPS (Metal Performance Shaders) device detected - using Apple Silicon GPU")
+            return accelerator.device 
+        else:
+            logger.warning("MPS not available - falling back to CPU")
+            return torch.device("cpu")
 
     def generate(
         self,
