@@ -1,6 +1,6 @@
 import torch
-from transformers import Pipeline, pipeline
 from accelerate import Accelerator
+from transformers import Pipeline, pipeline
 
 accelerator = Accelerator()
 device = torch.device(
@@ -8,7 +8,7 @@ device = torch.device(
 )
 
 prompt = "How to set up a FastAPI project?"
-system_prompt = """Your name is FastAPI bot, and are a helpful 
+system_prompt = """Your name is FastAPI bot, and are a helpful
 chatbot responsible for teaching FastAPI to your users.
 Always respond in markdown format."""
 

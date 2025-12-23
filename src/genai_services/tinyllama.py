@@ -5,8 +5,8 @@ model with Hugging Face Transformers, optimized for Mac M4 using MPS backend.
 """
 
 import torch
-from loguru import logger
 from accelerate import Accelerator
+from loguru import logger
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Model configuration

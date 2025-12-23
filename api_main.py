@@ -1,5 +1,5 @@
-import uvicorn
 from fastapi import FastAPI
+
 from models import generate_text, load_text_model
 
 app = FastAPI()
