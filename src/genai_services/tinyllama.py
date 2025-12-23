@@ -12,6 +12,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 # Model configuration
 MODEL_ID = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
+
 class TinyLlamaChat:
     """TinyLlama chat model wrapper for easy text generation."""
 
@@ -48,8 +49,10 @@ class TinyLlamaChat:
         accelerator = Accelerator()
 
         if accelerator.device.type == "mps":
-            logger.info("MPS (Metal Performance Shaders) device detected - using Apple Silicon GPU")
-            return accelerator.device 
+            logger.info(
+                "MPS (Metal Performance Shaders) device detected - using Apple Silicon GPU"
+            )
+            return accelerator.device
         else:
             logger.warning("MPS not available - falling back to CPU")
             return torch.device("cpu")
