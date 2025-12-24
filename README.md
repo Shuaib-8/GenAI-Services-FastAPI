@@ -6,6 +6,7 @@ A workspace for building generative AI services with FastAPI and Streamlit, mana
 
 ```
 .
+├── __pycache__
 ├── src
 │   └── genai_services
 │       ├── __init__.py
@@ -13,6 +14,9 @@ A workspace for building generative AI services with FastAPI and Streamlit, mana
 ├── tests
 │   ├── __init__.py
 │   └── test_main.py
+├── api_main.py
+├── client_st.py
+├── models.py
 ├── pyproject.toml
 ├── README.md
 └── uv.lock
