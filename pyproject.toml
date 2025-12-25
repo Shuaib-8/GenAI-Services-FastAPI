@@ -9,7 +9,7 @@ dev = [
   "bandit[toml]>=1.8.0",
   "pip-audit>=2.7.0",
   "pytest>=8.0.0",
-  "pre-commit>=4.0.0"
+  "pre-commit>=4.0.0",
 ]
 
 [project]
@@ -30,7 +30,8 @@ dependencies = [
   "uv==0.5.18",
   "torch>=2.0.0",
   "transformers>=4.40.0",
-  "accelerate>=0.27.0"
+  "accelerate>=0.27.0",
+  "soundfile>=0.13.1",
 ]
 
 [project.scripts]
