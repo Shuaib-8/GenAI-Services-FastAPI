@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 from accelerate import Accelerator
+from diffusers import DiffusionPipeline, StableDiffusionInpaintPipelineLegacy
+from PIL import Image
 from transformers import (
     AutoModel,
     AutoProcessor,
@@ -39,6 +41,14 @@ def load_audio_model() -> tuple[BarkProcessor, BarkModel]:
     processor = AutoProcessor.from_pretrained("suno/bark-small", device=device)
     model = AutoModel.from_pretrained("suno/bark-small").to(device)
     return processor, model
+
+
+def load_image_model() -> StableDiffusionInpaintPipelineLegacy:
+    """Load the text to image model and return a tuple of processor and model."""
+    pipe = DiffusionPipeline.from_pretrained(
+        "segmind/tiny-sd", device=device, torch_dtype=torch.float32
+    )
+    return pipe
 
 
 def generate_text(
@@ -80,3 +90,11 @@ def generate_audio(
     output = model.generate(**inputs, do_sample=True).cpu().numpy().squeeze()
     sample_rate = model.generation_config.sample_rate
     return output, sample_rate
+
+
+def generate_image(
+    pipe: StableDiffusionInpaintPipelineLegacy, prompt: str
+) -> Image.Image:
+    """Generate image using the model and return the image array."""
+    output = pipe(prompt, num_inference_steps=10).images[0]
+    return output

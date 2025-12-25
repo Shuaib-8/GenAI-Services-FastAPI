@@ -1,7 +1,9 @@
 from io import BytesIO
+from typing import Literal
 
 import numpy as np
 import soundfile
+from PIL import Image
 
 
 def audio_array_to_buffer(audio_array: np.array, sample_rate: int) -> BytesIO:
@@ -13,7 +15,11 @@ def audio_array_to_buffer(audio_array: np.array, sample_rate: int) -> BytesIO:
     return buffer
 
 
-def buffer_to_audio_array(buffer: BytesIO) -> np.array:
-    """Convert a buffer to an audio array."""
-    audio_array, sample_rate = soundfile.read(buffer)
-    return audio_array, sample_rate
+def image_array_to_buffer(
+    image_array: Image.Image, img_format: Literal["PNG", "JPEG"] = "PNG"
+) -> bytes:
+    """Convert an image array to a buffer."""
+    buffer = BytesIO()
+    image_array.save(buffer, format=img_format)
+    buffer.seek(0)
+    return buffer.getvalue()
