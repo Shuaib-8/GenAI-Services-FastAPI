@@ -1,6 +1,16 @@
+import numpy as np
 import torch
 from accelerate import Accelerator
-from transformers import Pipeline, pipeline
+from transformers import (
+    AutoModel,
+    AutoProcessor,
+    BarkModel,
+    BarkProcessor,
+    Pipeline,
+    pipeline,
+)
+
+from schemas import VoicePresets
 
 accelerator = Accelerator()
 device = torch.device(
@@ -22,6 +32,13 @@ def load_text_model() -> Pipeline:
         device=device,
     )
     return pipe
+
+
+def load_audio_model() -> tuple[BarkProcessor, BarkModel]:
+    """Load the audio model and return a tuple of processor and model."""
+    processor = AutoProcessor.from_pretrained("suno/bark-small", device=device)
+    model = AutoModel.from_pretrained("suno/bark-small").to(device)
+    return processor, model
 
 
 def generate_text(
@@ -49,3 +66,17 @@ def generate_text(
     )
     output = preds[0]["generated_text"].split("</s>\n<|assistant|>\n")[-1]
     return output
+
+
+def generate_audio(
+    processor: BarkProcessor, model: BarkModel, prompt: str, preset: VoicePresets
+) -> tuple[np.array, int]:
+    """Generate audio using the model and return the audio array and the number of tokens."""
+    inputs = processor(text=[prompt], return_tensors="pt", voice_preset=preset)
+    # Move inputs to the same device as the model
+    inputs = {
+        k: v.to(model.device) if hasattr(v, "to") else v for k, v in inputs.items()
+    }
+    output = model.generate(**inputs, do_sample=True).cpu().numpy().squeeze()
+    sample_rate = model.generation_config.sample_rate
+    return output, sample_rate
