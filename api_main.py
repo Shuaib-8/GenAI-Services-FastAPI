@@ -1,19 +1,18 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import httpx
 from fastapi import FastAPI, Response, status
 from fastapi.responses import PlainTextResponse, StreamingResponse
 
 from models import (
     generate_audio,
-    generate_image,
     generate_text,
     load_audio_model,
-    load_image_model,
     load_text_model,
 )
 from schemas import VoicePresets
-from utils import audio_array_to_buffer, image_array_to_buffer
+from utils import audio_array_to_buffer
 
 models = {}
 
@@ -22,7 +21,6 @@ models = {}
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     models["text"] = load_text_model()
     models["audio"] = load_audio_model()
-    models["image"] = load_image_model()
 
     yield
 
@@ -54,12 +52,13 @@ def serve_text_to_audio_model_controller(
 
 
 @app.get(
-    "/generate/image",
+    "/generate/bentoml/image",
     responses={status.HTTP_200_OK: {"content": {"image/png": {}}}},
     response_class=Response,
 )
-def serve_text_to_image_model_controller(prompt: str) -> StreamingResponse:
-    pipe = models["image"]
-    output = generate_image(pipe, prompt)
-    buffer = image_array_to_buffer(output)
-    return Response(content=buffer, media_type="image/png")
+async def serve_bentoml_text_to_image_model_controller(prompt: str) -> Response:
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        response = await client.post(
+            "http://localhost:5001/generate/image", json={"prompt": prompt}
+        )
+    return Response(content=response.content, media_type="image/png")

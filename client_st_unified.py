@@ -101,7 +101,7 @@ with tab_image:
 
         # Call the image generation API
         response = requests.get(
-            "http://localhost:8000/generate/image",
+            "http://localhost:8000/generate/bentoml/image",
             params={"prompt": prompt},
             timeout=60,  # 60 seconds timeout
         )
