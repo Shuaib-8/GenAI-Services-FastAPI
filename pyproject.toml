@@ -33,6 +33,7 @@ dependencies = [
   "accelerate>=0.27.0",
   "soundfile>=0.13.1",
   "diffusers>=0.36.0",
+  "bentoml>=1.4.31",
 ]
 
 [project.scripts]
