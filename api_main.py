@@ -1,3 +1,6 @@
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Response, status
 from fastapi.responses import PlainTextResponse, StreamingResponse
 
@@ -12,12 +15,26 @@ from models import (
 from schemas import VoicePresets
 from utils import audio_array_to_buffer, image_array_to_buffer
 
-app = FastAPI()
+models = {}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    models["text"] = load_text_model()
+    models["audio"] = load_audio_model()
+    models["image"] = load_image_model()
+
+    yield
+
+    models.clear()
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/generate/text", response_class=PlainTextResponse)
 def serve_language_model_controller(prompt: str) -> PlainTextResponse:
-    pipe = load_text_model()
+    pipe = models["text"]
     output = generate_text(pipe, prompt)
     return PlainTextResponse(content=output)
 
@@ -30,7 +47,7 @@ def serve_language_model_controller(prompt: str) -> PlainTextResponse:
 def serve_text_to_audio_model_controller(
     prompt: str, preset: VoicePresets = "v2/en_speaker_1"
 ) -> StreamingResponse:
-    processor, model = load_audio_model()
+    processor, model = models["audio"]
     output, sample_rate = generate_audio(processor, model, prompt, preset)
     buffer = audio_array_to_buffer(output, sample_rate)
     return StreamingResponse(buffer, media_type="audio/wav")
@@ -42,7 +59,7 @@ def serve_text_to_audio_model_controller(
     response_class=Response,
 )
 def serve_text_to_image_model_controller(prompt: str) -> StreamingResponse:
-    pipe = load_image_model()
+    pipe = models["image"]
     output = generate_image(pipe, prompt)
     buffer = image_array_to_buffer(output)
     return Response(content=buffer, media_type="image/png")
