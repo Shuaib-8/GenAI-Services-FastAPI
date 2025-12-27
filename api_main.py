@@ -4,6 +4,9 @@ from contextlib import asynccontextmanager
 import httpx
 from fastapi import FastAPI, Response, status
 from fastapi.responses import PlainTextResponse, StreamingResponse
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
 from openai import OpenAI
 
 from models import (
@@ -76,3 +79,18 @@ def serve_openai_text_model_controller(prompt: str) -> str | None:
         ],
     )
     return response.choices[0].message.content
+
+
+@app.get("/generate/langchain/text", response_class=PlainTextResponse)
+def serve_langchain_text_model_controller(prompt: str) -> PlainTextResponse:
+    prompt_template = ChatPromptTemplate.from_messages(
+        [
+            ("system", "You are a helpful assistant."),
+            ("user", "{prompt}"),
+        ]
+    )
+    model = ChatOpenAI(model="gpt-4o-mini")
+    output_parser = StrOutputParser()
+    chain = prompt_template | model | output_parser
+    result = chain.invoke({"prompt": prompt})
+    return PlainTextResponse(content=result)
