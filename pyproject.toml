@@ -34,6 +34,7 @@ dependencies = [
   "soundfile>=0.13.1",
   "diffusers>=0.36.0",
   "bentoml>=1.4.31",
+  "openai>=2.14.0",
 ]
 
 [project.scripts]

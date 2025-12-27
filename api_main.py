@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 import httpx
 from fastapi import FastAPI, Response, status
 from fastapi.responses import PlainTextResponse, StreamingResponse
+from openai import OpenAI
 
 from models import (
     generate_audio,
@@ -28,6 +29,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(lifespan=lifespan)
+openai_client = OpenAI()
 
 
 @app.get("/generate/text", response_class=PlainTextResponse)
@@ -62,3 +64,15 @@ async def serve_bentoml_text_to_image_model_controller(prompt: str) -> Response:
             "http://localhost:5001/generate/image", json={"prompt": prompt}
         )
     return Response(content=response.content, media_type="image/png")
+
+
+@app.get("/generate/openai/text", response_class=Response)
+def serve_openai_text_model_controller(prompt: str) -> str | None:
+    response = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt},
+        ],
+    )
+    return response.choices[0].message.content
