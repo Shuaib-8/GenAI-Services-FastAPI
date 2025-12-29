@@ -9,10 +9,24 @@ from pydantic import (
     HttpUrl,
     IPvAnyAddress,
     PositiveInt,
+    computed_field,
     validate_call,
 )
 
-VoicePresets = Literal["v2/en_speaker_1", "v2/en_speaker_9"]
+from utils import count_tokens
+
+VoicePresets = Annotated[
+    Literal["v2/en_speaker_1", "v2/en_speaker_9"], "Supported voice presets"
+]
+ImageSize = Annotated[
+    tuple[PositiveInt, PositiveInt], "Width and height of the image in pixels"
+]
+SupportedImageModels = Annotated[
+    Literal["tinysd", "sd1.5"], "Supported image generation models"
+]
+SupportedTextModels = Annotated[
+    Literal["gpt-4o-mini", "gpt-4o"], "Supported text generation models"
+]
 
 
 class ModelRequest(BaseModel):
@@ -28,19 +42,33 @@ class ModelResponse(BaseModel):
 
 
 class TextModelRequest(ModelRequest):
-    model: Literal["gpt-4o-mini", "gpt-4o"]
+    model: SupportedTextModels
     temperature: Annotated[float, Field(ge=0.0, le=1.0, default=0.0)]
 
 
 class TextModelResponse(ModelResponse):
-    tokens: Annotated[int, Field(ge=0)]
+    model: SupportedTextModels
+    price: Annotated[float, Field(ge=0.0, default=0.01)]
+    temperature: Annotated[float, Field(ge=0.0, le=1.0, default=0.0)]
+
+    @computed_field  # no need for property decorator here because we are using computed_field
+    def tokens(self) -> int:
+        return count_tokens(self.content)
+
+    @property  # use property decorator here because the field is not computed and we want to access it as an attribute
+    @computed_field
+    def price(self) -> float:
+        return self.tokens * self.price
 
 
 ImageSize = Annotated[
     tuple[PositiveInt, PositiveInt], "Width and height of the image in pixels"
 ]
-SupportedModels = Annotated[
+SupportedImageModels = Annotated[
     Literal["tinysd", "sd1.5"], "Supported image generation models"
+]
+SupportedTextModels = Annotated[
+    Literal["gpt-4o-mini", "gpt-4o"], "Supported text generation models"
 ]
 
 
@@ -56,7 +84,9 @@ def is_square_image(value: ImageSize) -> ImageSize:
 
 
 @validate_call
-def is_valid_inference_steps(num_inference_steps: int, model: SupportedModels) -> int:
+def is_valid_inference_steps(
+    num_inference_steps: int, model: SupportedImageModels
+) -> int:
     if model == "tinysd" and num_inference_steps > 2000:
         raise ValueError("TinySD model only supports up to 2000 inference steps")
     elif model == "sd1.5" and num_inference_steps > 50:
@@ -71,7 +101,7 @@ InferenceSteps = Annotated[
 
 
 class ImageModelRequest(ModelRequest):
-    model: Literal["dall-e-3", "dall-e-2"]
+    model: SupportedImageModels
     output_size: OutputSize
     num_inference_steps: InferenceSteps = 20
 

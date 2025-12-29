@@ -23,3 +23,8 @@ def image_array_to_buffer(
     image_array.save(buffer, format=img_format)
     buffer.seek(0)
     return buffer.getvalue()
+
+
+def count_tokens(text: str) -> int:
+    """Count the number of tokens in a text."""
+    return len(text.split())
