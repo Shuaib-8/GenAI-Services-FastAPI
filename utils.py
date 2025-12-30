@@ -1,3 +1,4 @@
+import re
 from io import BytesIO
 from typing import Literal
 
@@ -28,3 +29,17 @@ def image_array_to_buffer(
 def count_tokens(text: str) -> int:
     """Count the number of tokens in a text."""
     return len(text.split())
+
+
+def normalize_text(text: str | None) -> str | None:
+    """Normalize text: handle encodings, remove escape sequences and control chars."""
+    if text is None:
+        return None
+    # Handle bytes with fallback encoding
+    if isinstance(text, bytes):
+        text = text.decode("utf-8", errors="replace")
+    # Normalize all whitespace (including \n, \t, \r, etc.) to single space
+    text = re.sub(r"\s+", " ", text)
+    # Remove control characters
+    text = re.sub(r"[\x00-\x1f\x7f-\x9f]", "", text)
+    return text.strip()
