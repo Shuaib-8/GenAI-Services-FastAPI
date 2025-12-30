@@ -24,9 +24,17 @@ ImageSize = Annotated[
 SupportedImageModels = Annotated[
     Literal["tinysd", "sd1.5"], "Supported image generation models"
 ]
-SupportedTextModels = Annotated[
-    Literal["gpt-4o-mini", "gpt-4o"], "Supported text generation models"
-]
+
+
+def validate_text_model(v: str) -> str:
+    """Validate text model with custom error message."""
+    supported = ["tinyllama", "gemma2b"]
+    if v not in supported:
+        raise ValueError(f"Model {v} not supported. Supported models: {supported}")
+    return v
+
+
+SupportedTextModels = Annotated[str, AfterValidator(validate_text_model)]
 
 
 class ModelRequest(BaseModel):
