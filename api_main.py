@@ -1,8 +1,9 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Annotated
 
 import httpx
-from fastapi import FastAPI, Response, status
+from fastapi import Body, FastAPI, Request, Response, status
 from fastapi.responses import PlainTextResponse, StreamingResponse
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
@@ -15,8 +16,12 @@ from models import (
     load_audio_model,
     load_text_model,
 )
-from schemas import VoicePresets
-from utils import audio_array_to_buffer
+from schemas import (
+    TextModelRequest,
+    TextModelResponse,
+    VoicePresets,
+)
+from utils import audio_array_to_buffer, normalize_text
 
 models = {}
 
@@ -35,11 +40,19 @@ app = FastAPI(lifespan=lifespan)
 openai_client = OpenAI()
 
 
-@app.get("/generate/text", response_class=PlainTextResponse)
-def serve_language_model_controller(prompt: str) -> PlainTextResponse:
+@app.post("/generate/text")
+def serve_text_to_text_controller(
+    request: Request,
+    body: Annotated[TextModelRequest, Body(description="Text model request")],
+) -> TextModelResponse:
     pipe = models["text"]
-    output = generate_text(pipe, prompt)
-    return PlainTextResponse(content=output)
+    output = generate_text(pipe, body.prompt, body.temperature)
+    return TextModelResponse(
+        content=normalize_text(output),
+        model=body.model,
+        temperature=body.temperature,
+        ip=request.client.host,
+    )
 
 
 @app.get(
