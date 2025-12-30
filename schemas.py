@@ -43,22 +43,37 @@ class ModelResponse(BaseModel):
 
 class TextModelRequest(ModelRequest):
     model: SupportedTextModels
-    temperature: Annotated[float, Field(ge=0.0, le=1.0, default=0.0)]
+    temperature: Annotated[
+        float,
+        Field(
+            ge=0.0,
+            le=1.0,
+            default=0.01,
+            description="Controls randomness in text generation. 0.0 is deterministic, 1.0 is most random.",
+        ),
+    ]
 
 
 class TextModelResponse(ModelResponse):
     model: SupportedTextModels
-    price: Annotated[float, Field(ge=0.0, default=0.01)]
-    temperature: Annotated[float, Field(ge=0.0, le=1.0, default=0.0)]
+    rate: Annotated[
+        float,
+        Field(ge=0.0, default=0.01, exclude=True, description="Price rate per token"),
+    ]
+    temperature: Annotated[
+        float,
+        Field(
+            ge=0.0, le=1.0, default=0.01, description="Temperature used for generation"
+        ),
+    ]
 
-    @computed_field  # no need for property decorator here because we are using computed_field
+    @computed_field
     def tokens(self) -> int:
         return count_tokens(self.content)
 
-    @property  # use property decorator here because the field is not computed and we want to access it as an attribute
     @computed_field
     def price(self) -> float:
-        return self.tokens * self.price
+        return self.tokens * self.rate
 
 
 ImageSize = Annotated[
