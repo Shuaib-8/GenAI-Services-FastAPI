@@ -30,14 +30,15 @@ with tab_text:
         st.session_state.text_messages.append({"role": "user", "content": prompt})
 
         # Call the text generation API
-        response = requests.get(
+        response = requests.post(
             "http://localhost:8000/generate/text",
-            params={"prompt": prompt},
+            json={"prompt": prompt, "model": "tinyllama", "temperature": 0.01},
             timeout=60,  # 60 seconds timeout
         )
         response.raise_for_status()
+        # gather the response from API while treating it as plain text to ensure markdown is rendered correctly
+        assistant_response = response.json()["content"]
 
-        assistant_response = response.text
         st.session_state.text_messages.append(
             {"role": "assistant", "content": assistant_response}
         )
