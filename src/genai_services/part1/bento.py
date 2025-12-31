@@ -1,7 +1,7 @@
 import bentoml
 from PIL import Image
 
-from models import load_image_model
+from genai_services.part1.models import load_image_model
 
 
 @bentoml.service(

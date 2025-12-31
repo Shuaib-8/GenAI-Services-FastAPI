@@ -12,7 +12,7 @@ from transformers import (
     pipeline,
 )
 
-from schemas import VoicePresets
+from genai_services.part1.schemas import VoicePresets
 
 accelerator = Accelerator()
 device = torch.device(

@@ -13,7 +13,7 @@ from pydantic import (
     validate_call,
 )
 
-from utils import count_tokens
+from genai_services.utils import count_tokens
 
 VoicePresets = Annotated[
     Literal["v2/en_speaker_1", "v2/en_speaker_9"], "Supported voice presets"

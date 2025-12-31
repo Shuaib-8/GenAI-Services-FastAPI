@@ -10,18 +10,18 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from openai import OpenAI
 
-from models import (
+from genai_services.part1.models import (
     generate_audio,
     generate_text,
     load_audio_model,
     load_text_model,
 )
-from schemas import (
+from genai_services.part1.schemas import (
     TextModelRequest,
     TextModelResponse,
     VoicePresets,
 )
-from utils import audio_array_to_buffer, normalize_text
+from genai_services.utils import audio_array_to_buffer, normalize_text
 
 models = {}
 
