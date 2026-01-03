@@ -20,6 +20,10 @@ class AppSettings(BaseSettings):
         set[HttpUrl],
         Field(alias="CORS_WHITELIST", default=["http://localhost:3000"]),
     ]
+    # check follows sk-proj-...: can define in .env or as a global environment variable
+    openai_api_key: Annotated[
+        str, Field(alias="OPENAI_API_KEY", pattern=r"^sk-proj-.*$")
+    ]
 
 
 settings = AppSettings()
