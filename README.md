@@ -8,19 +8,17 @@ A workspace for building generative AI services with FastAPI and Streamlit, mana
 .
 ├── src
 │   └── genai_services
+│       ├── part1 # Developing AI Services 
+│       ├── part2 # Communicating with External Services
 │       ├── __init__.py
-│       └── tinyllama.py
+│       ├── tinyllama.py
+│       └── utils.py
 ├── tests
 │   ├── __init__.py
 │   └── test_main.py
-├── api_main.py
-├── bento.py
-├── client_st_unified.py
-├── models.py
 ├── pyproject.toml
 ├── README.md
-├── schemas.py
-├── utils.py
+├── settings.py
 └── uv.lock
 ```
 
