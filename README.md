@@ -41,3 +41,17 @@ source .venv/bin/activate
 # test the application
 uv run pytest
 ```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit an issue or a pull request.
+
+You can branch off the `main` branch to make your changes and then submit a pull request to the `main` branch, running the formatting and linting checks with pre-commit hooks.
+
+```bash
+# Install pre-commit hooks
+uv run pre-commit install
+
+# Run pre-commit hooks
+uv run pre-commit run --all-files
+```
