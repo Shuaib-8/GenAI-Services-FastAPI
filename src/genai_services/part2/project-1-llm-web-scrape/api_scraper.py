@@ -43,8 +43,21 @@ async def scrape_text(
     urls_content: str = Depends(get_urls_content),
 ) -> TextModelResponse:
     pipe = models["text"]
-    prompt: str = body.prompt + " " + urls_content
-    output: str = generate_text(pipe, prompt, body.temperature)
+
+    # Combine prompt with scraped content
+    combined_prompt = f"{body.prompt}\n\nContext from web pages:\n{urls_content}"
+
+    # Truncate if combined prompt is too long (TinyLlama has ~2048 token limit)
+    # Using conservative estimate: ~4 chars per token
+    max_chars = (
+        6000  # Roughly 1500 tokens, leaving room for system prompt and generation
+    )
+    if len(combined_prompt) > max_chars:
+        combined_prompt = (
+            combined_prompt[:max_chars] + "\n\n[Context truncated due to length]"
+        )
+
+    output: str = generate_text(pipe, combined_prompt, body.temperature)
     return TextModelResponse(
         ip=request.client.host if request.client else None,
         content=normalize_text(output),
