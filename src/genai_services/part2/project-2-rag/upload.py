@@ -4,7 +4,7 @@ import aiofiles
 from aiofiles.os import makedirs
 from fastapi import UploadFile
 
-DEFAULT_CHUNK_SIZE = 1000 * 1024 * 50  # 50MB
+DEFAULT_CHUNK_SIZE = 1024 * 1024 * 50  # 50MB
 
 UPLOAD_DIR = Path(__file__).parent / "uploads"
 
