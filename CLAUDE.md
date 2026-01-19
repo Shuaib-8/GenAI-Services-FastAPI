@@ -31,7 +31,7 @@ src/genai_services/
 │   ├── schemas.py                # Pydantic models for requests/responses
 │   ├── dependencies.py           # FastAPI dependency functions
 │   ├── client_*.py               # Client code (Streamlit, CLI, etc.)
-│   └── project-*/                # Sub-projects (nested modules)
+│   └── project_*/                # Sub-projects (nested modules)
 │       ├── api_*.py
 │       ├── *.py                  # Domain-specific logic files
 │       └── uploads/              # Runtime data directories (gitignored)
@@ -226,7 +226,7 @@ Required environment variables in `.env`:
 ### Adding New Modules
 
 When creating new feature modules:
-1. Follow the `partN/` or `partN/project-name/` structure
+1. Follow the `partN/` or `partN/project_name/` structure (use underscores, not hyphens)
 2. Include these files as needed:
    - `api_*.py` - FastAPI routes and lifespan
    - `schemas.py` - Request/response models

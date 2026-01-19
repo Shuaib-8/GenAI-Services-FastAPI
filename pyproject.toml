@@ -2,6 +2,12 @@
 requires = ["uv_build>=0.9.13,<0.10.0"]
 build-backend = "uv_build"
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [dependency-groups]
 dev = [
   "ruff>=0.8.0",
@@ -45,6 +51,7 @@ dependencies = [
   "python-multipart>=0.0.21",
   "numpy>=2.4.1", # Exclude yanked 2.4.0 version
   "pypdf>=6.6.0",
+  "qdrant-client>=1.16.2",
 ]
 
 [project.scripts]
