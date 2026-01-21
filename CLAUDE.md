@@ -128,7 +128,12 @@ When exploring an unfamiliar module:
 ```bash
 # Dependency management
 uv sync                                  # Install all dependencies
+uv pip install -e . --force-reinstall    # Install project in editable mode (run after uv sync)
 uv add <package>                         # Add new package
+
+# IMPORTANT: After restarting IDE or if imports fail
+# Run both `uv sync` and `uv pip install -e . --force-reinstall` to ensure project is installed
+# DO NOT use `uv run pip install -e .` - use `uv pip install -e .` instead
 
 # Testing & quality
 uv run pytest                            # Run all tests
@@ -143,6 +148,11 @@ uv run pyrefly check .                 # Type check
 # Running services (discover via glob: src/**/api_*.py)
 uv run fastapi dev <path/to/api_*.py>   # Generic FastAPI dev server
 uv run bentoml serve <path/to/bento.py>:<ServiceClass>  # BentoML services
+
+# Running Python scripts directly
+# IMPORTANT: Run as a module, not as a file path
+uv run python -m genai_services.part2.project_2_rag.service  # Correct way
+# NOT: uv run python src/genai_services/part2/project_2_rag/service.py  # This won't work!
 ```
 
 ## Agent-Specific Guidance
@@ -184,6 +194,9 @@ Rather than fixed references, search for these patterns:
 
 ### What to Do
 
+- ✅ Use `uv sync` to install all dependencies
+- ✅ Use `uv pip install -e . --force-reinstall` to install project in editable mode (run after `uv sync`)
+- ✅ Run both `uv sync` and `uv pip install -e . --force-reinstall` after restarting IDE if imports fail
 - ✅ Use `uv add <package>` to add new dependencies
 - ✅ Use `uv run <command>` to run commands
 - ✅ Use `uv run pytest -v` to run tests
@@ -198,6 +211,9 @@ Rather than fixed references, search for these patterns:
 ### What NOT to Do
 
 - ❌ Don't use `pip install` (use `uv add` or `uv sync`)
+- ❌ Don't use `uv run pip install -e .` (wrong - use `uv pip install -e .` instead)
+- ❌ Don't run Python scripts as file paths (e.g., `uv run python src/.../script.py`)
+- ✅ Do run Python scripts as modules (e.g., `uv run python -m genai_services.part2.project_2_rag.service`)
 - ❌ Don't run Python without `uv run` prefix
 - ❌ Don't scatter utility functions (consolidate in `utils.py` or create `*_utils.py`)
 - ❌ Don't add dependencies without version constraints
@@ -209,6 +225,28 @@ Rather than fixed references, search for these patterns:
 Required environment variables in `.env`:
 - `OPENAI_API_KEY` (pattern: `sk-proj-...`)
 - Optional: `DATABASE_URL`, `CORS_WHITELIST`, `app_secret`
+
+### Initial Setup & After IDE Restart
+
+**IMPORTANT**: After cloning the repo or restarting your IDE, run:
+```bash
+uv sync
+uv pip install -e . --force-reinstall  # Explicitly install project in editable mode
+```
+
+**Why both commands?**
+- `uv sync` installs all dependencies from `pyproject.toml`
+- `uv pip install -e . --force-reinstall` explicitly installs the project in editable mode (so `import genai_services` works)
+- The `--force-reinstall` flag ensures the package is properly installed even if it was previously installed incorrectly
+
+**Why you might see `ModuleNotFoundError: No module named 'genai_services'`:**
+- You're running the script as a file path instead of a module (see below)
+- You haven't run `uv pip install -e . --force-reinstall` after `uv sync`
+- You used `uv run pip install -e .` (wrong - use `uv pip install -e .` instead)
+- The package was installed but not in editable mode correctly
+
+**Solution**: 
+- Run both `uv sync` and `uv pip install -e . --force-reinstall` after restarting your IDE
 
 ## Debugging
 

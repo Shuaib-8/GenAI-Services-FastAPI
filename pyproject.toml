@@ -8,6 +8,9 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.uv]
+package = true  # Explicitly tell uv to install this project in editable mode
+
 [dependency-groups]
 dev = [
   "ruff>=0.8.0",
