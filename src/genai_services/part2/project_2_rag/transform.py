@@ -13,10 +13,12 @@ embedder = AutoModel.from_pretrained(
 )
 
 
-async def load(filepath: str) -> AsyncGenerator[str, Any]:
+async def load(
+    filepath: str, chunk_size: int = DEFAULT_CHUNK_SIZE
+) -> AsyncGenerator[str, Any]:
     """Load a file and return its content as a string."""
     async with aiofiles.open(filepath, encoding="utf-8") as f:
-        while chunk := await f.read(DEFAULT_CHUNK_SIZE):
+        while chunk := await f.read(chunk_size):
             yield chunk
 
 
