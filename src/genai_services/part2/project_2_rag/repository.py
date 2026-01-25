@@ -30,8 +30,7 @@ class VectorDBRepository:
             logger.info(
                 f"Collection {collection_name} already exists - recreating collection"
             )
-
-            await self.db_client.recreate_collection(
+            return await self.db_client.recreate_collection(
                 collection_name=collection_name, vectors_config=vectors_config
             )
 
@@ -87,7 +86,7 @@ class VectorDBRepository:
         )
         response: QueryResponse = await self.db_client.query_points(
             collection_name=collection_name,
-            query_vector=query_vector,
+            query=query_vector,
             limit=retrieval_limit,
             score_threshold=score_threshold,
         )
