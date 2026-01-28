@@ -1,291 +1,281 @@
-# AGENTS.md
+# Project Guide
 
-Reference guide for AI coding assistants working with this project.
+## 1. Project Setup
 
-## Project Identity
+**Name**: `genai-services-fastapi`
+**Package**: `genai_services` (import path)
+**Root**: Directory containing `pyproject.toml` and `settings.py`
 
-**Name**: `genai-services-fastapi`  
-**Purpose**: FastAPI workspace for building generative AI services (text, audio, image generation) with Streamlit clients
-
-**Package Name**: `genai_services` (import path for first-party code)  
-**Project Root**: Directory containing `pyproject.toml` and `settings.py`
-
-## Tech Stack
-
+### Tech Stack
 - **Python**: 3.11 (strict: `>=3.11,<3.12`)
 - **Package Manager**: `uv` (not pip/poetry)
-- **Web Framework**: FastAPI with Pydantic
-- **ML Stack**: PyTorch, Transformers, Diffusers, Accelerate
+- **Web**: FastAPI + Pydantic
+- **ML**: PyTorch, Transformers, Diffusers, Accelerate
+- **Vector DB**: Qdrant (RAG/semantic search)
+- **PDF**: pypdf for text extraction
+- **Embeddings**: jina-embeddings-v2-base-en (768d)
 - **Integrations**: OpenAI, LangChain, BentoML
-- **Quality Tools**: ruff, mypy (strict) or pyrefly, bandit, pre-commit
+- **Quality**: ruff, mypy/pyrefly, bandit, pre-commit
 
-## Architecture
-
-### Organization Principles
-
+### Architecture
 ```
 src/genai_services/
-├── part*/                         # Feature modules (partN directories)
-│   ├── api_*.py                  # FastAPI apps (endpoints, routers)
-│   ├── models.py                 # ML model loading & inference (if ML-heavy)
-│   ├── schemas.py                # Pydantic models for requests/responses
-│   ├── dependencies.py           # FastAPI dependency functions
-│   ├── client_*.py               # Client code (Streamlit, CLI, etc.)
-│   └── project_*/                # Sub-projects (nested modules)
+├── part*/                         # Feature modules
+│   ├── api_*.py                  # FastAPI apps
+│   ├── models.py                 # ML model loading
+│   ├── schemas.py                # Pydantic models
+│   ├── dependencies.py           # FastAPI dependencies
+│   ├── client_*.py               # Client code
+│   └── project_*/                # Sub-projects
 │       ├── api_*.py
-│       ├── *.py                  # Domain-specific logic files
-│       └── uploads/              # Runtime data directories (gitignored)
-├── utils.py                       # Shared utilities (cross-cutting concerns)
-└── __init__.py                    # Package entry point
-settings.py (root)                 # Pydantic settings (environment config)
+│       ├── *.py                  # Domain logic
+│       └── uploads/              # Runtime data (gitignored)
+├── utils.py                       # Shared utilities
+└── __init__.py
+settings.py (root)                 # Pydantic settings
 ```
 
-### File Discovery (for AI agents)
-
-To find relevant files dynamically:
-- **API entry points**: Search for `api_*.py` or files with `FastAPI()` instantiation
-- **Pydantic models**: Search for `schemas.py` or files with `BaseModel` subclasses
-- **ML models**: Search for `models.py` or files with `load_*_model()` functions
-- **Settings**: Look for `settings.py` at project root or `BaseSettings` subclasses
-- **Utilities**: Check `utils.py` for shared helper functions
-- **Tests**: All test files follow `tests/test_*.py` pattern
-
-## Key Patterns
-
-### FastAPI Patterns
-- **Model Loading**: Use lifespan context managers to load ML models at startup
-- **Model Storage**: Store in module-level `models = {}` dict, access via dict keys
-- **State Management**: Models can also be stored in `app.state` for dependency injection
-- **Response Types**: Use `StreamingResponse` for audio/images, Pydantic models for JSON
-
-### Pydantic Patterns
-- **Type Annotations**: Use `Annotated[type, Field(...)]` for all request/response models
-- **Custom Validation**: Use `AfterValidator` for complex validation logic
-- **Computed Fields**: Use `@computed_field` for derived properties (e.g., token count)
-- **Settings**: Use `pydantic-settings` with `.env` file (look for `BaseSettings` subclasses)
-
-### Async Patterns
-- **File Operations**: Always use `aiofiles` for async file I/O
-- **HTTP Requests**: Use `httpx.AsyncClient` or `aiohttp.ClientSession` with context managers
-- **Concurrent Tasks**: Use `asyncio.gather()` for parallel operations
-
-### ML Model Patterns
-- **Device Selection**: Use `accelerator.device` (MPS for Apple Silicon, else CPU)
-- **Pipelines**: HuggingFace pipelines for text generation
-- **Manual Loading**: `AutoModel` + `AutoProcessor` for audio/custom models
-
-### Logging
-- Use `loguru` logger (imported from `loguru import logger`)
-
-## Code Style
-
-- **Line Length**: ruff line length configuration
-- **Quotes**: Single quotes for strings
-- **Imports**: Sorted with ruff, first-party group = `genai_services`
-- **Type Hints**: Required everywhere (pyrefly strict mode enabled)
-- **Docstrings**: Simple one-liners for functions
-
-## Navigation & Discovery (for AI Agents)
-
-### Finding Key Components
-
-Use these search strategies instead of hardcoded paths:
-
-```bash
-# Find all FastAPI applications
-grep -r "FastAPI(" src/ --include="*.py"
-
-# Find all streamlit applications
-grep -r "streamlit" src/ --include="*.py"
-
-# Find all Pydantic schemas
-grep -r "BaseModel" src/ --include="schemas.py"
-
-# Find settings configuration
-find . -name "settings.py" -o -name "*config*.py"
-
-# Find ML model loaders
-grep -r "def load_.*_model" src/ --include="*.py"
-
-# Find all API endpoints
-grep -r "@app\.(get|post|put|delete)" src/ --include="*.py"
-
-# Find async file operations
-grep -r "aiofiles" src/ --include="*.py"
-```
-
-### Code Reading Priority
-
-When exploring an unfamiliar module:
-1. Start with `api_*.py` → understand endpoints and request flow
-2. Check `schemas.py` → understand data models and validation
-3. Read `models.py` → understand ML model loading if applicable
-4. Check `dependencies.py` → understand shared FastAPI dependencies
-5. Review `*.py` domain files → understand business logic
-
-## Essential Commands
-
-```bash
-# Dependency management
-uv sync                                  # Install all dependencies
-uv pip install -e . --force-reinstall    # Install project in editable mode (run after uv sync)
-uv add <package>                         # Add new package
-
-# IMPORTANT: After restarting IDE or if imports fail
-# Run both `uv sync` and `uv pip install -e . --force-reinstall` to ensure project is installed
-# DO NOT use `uv run pip install -e .` - use `uv pip install -e .` instead
-
-# Testing & quality
-uv run pytest                            # Run all tests
-uv run pytest tests/test_*.py -v        # Run specific test pattern
-uv run pre-commit run --all-files       # Run all linters
-
-# Individual linters
-uv run ruff check .                     # Lint code
-uv run ruff format .                    # Format code
-uv run pyrefly check .                 # Type check
-
-# Running services (discover via glob: src/**/api_*.py)
-uv run fastapi dev <path/to/api_*.py>   # Generic FastAPI dev server
-uv run bentoml serve <path/to/bento.py>:<ServiceClass>  # BentoML services
-
-# Running Python scripts directly
-# IMPORTANT: Run as a module, not as a file path
-uv run python -m genai_services.part2.project_2_rag.service  # Correct way
-# NOT: uv run python src/genai_services/part2/project_2_rag/service.py  # This won't work!
-```
-
-## Agent-Specific Guidance
-
-### When Adding New Features
-
-1. **New API Endpoints**
-   - Add to appropriate `api_*.py` file (discover via: `find src -name "api_*.py"`)
-   - Follow existing patterns (lifespan for models, Pydantic schemas)
-   - Use type hints and `Annotated` types
-
-2. **New Pydantic Models**
-   - Add to `schemas.py` in the same module (or create if absent)
-   - Use `Annotated[type, Field(...)]` pattern
-   - Add validation with `AfterValidator` if needed
-
-3. **New ML Models**
-   - Loading logic goes in `models.py` (or create if absent)
-   - Add to lifespan context manager in API file
-   - Store in module-level `models` dict
-
-4. **New Dependencies**
-   - Use `uv add <package>` (not pip install)
-   - Updates `pyproject.toml` automatically via uv
-
-5. **Environment Variables**
-   - Add to settings file (search for `BaseSettings` subclass)
-   - Document in `.env.example` if creating
-
-### Common Task Patterns
-
-Rather than fixed references, search for these patterns:
-
-- **File Upload**: Search for `UploadFile` usage or `aiofiles` async file handling
-- **Web Scraping**: Search for `aiohttp.ClientSession` or `BeautifulSoup` usage
-- **Text Generation**: Search for `generate_text()` or HuggingFace `pipeline()` usage
-- **Audio/Image Buffers**: Search for `BytesIO` buffer conversion patterns
-- **Async Context Managers**: Search for `@asynccontextmanager` decorator usage
-
-### What to Do
-
-- ✅ Use `uv sync` to install all dependencies
-- ✅ Use `uv pip install -e . --force-reinstall` to install project in editable mode (run after `uv sync`)
-- ✅ Run both `uv sync` and `uv pip install -e . --force-reinstall` after restarting IDE if imports fail
-- ✅ Use `uv add <package>` to add new dependencies
-- ✅ Use `uv run <command>` to run commands
-- ✅ Use `uv run pytest -v` to run tests
-- ✅ Use `uv run ruff check .` to lint code
-- ✅ Use `uv run ruff format .` to format code
-- ✅ Use `uv run pyrefly check .` to type check code
-- ✅ Use `uv run pre-commit run --all-files` to run all linters
-- ✅ Use `uv run fastapi dev <path/to/api_*.py>` to run the FastAPI development server
-- ✅ Use `uv run bentoml serve <path/to/bento.py>:<ServiceClass>` to run the BentoML service
-- ✅ Use `uv run streamlit run <path/to/streamlit_app.py>` to run the Streamlit application
-
-### What NOT to Do
-
-- ❌ Don't use `pip install` (use `uv add` or `uv sync`)
-- ❌ Don't use `uv run pip install -e .` (wrong - use `uv pip install -e .` instead)
-- ❌ Don't run Python scripts as file paths (e.g., `uv run python src/.../script.py`)
-- ✅ Do run Python scripts as modules (e.g., `uv run python -m genai_services.part2.project_2_rag.service`)
-- ❌ Don't run Python without `uv run` prefix
-- ❌ Don't scatter utility functions (consolidate in `utils.py` or create `*_utils.py`)
-- ❌ Don't add dependencies without version constraints
-- ❌ Don't use `print()` for logging (use `loguru.logger`)
-- ❌ Don't use `open()` for async code (use `aiofiles`)
-
-## Environment Setup
-
-Required environment variables in `.env`:
+### Environment Setup
+Required in `.env`:
 - `OPENAI_API_KEY` (pattern: `sk-proj-...`)
 - Optional: `DATABASE_URL`, `CORS_WHITELIST`, `app_secret`
 
-### Initial Setup & After IDE Restart
-
-**IMPORTANT**: After cloning the repo or restarting your IDE, run:
+**After cloning or restarting IDE:**
 ```bash
-uv sync
-uv pip install -e . --force-reinstall  # Explicitly install project in editable mode
+uv sync  # Installs dependencies + package in editable mode (package = true in pyproject.toml)
 ```
 
-**Why both commands?**
-- `uv sync` installs all dependencies from `pyproject.toml`
-- `uv pip install -e . --force-reinstall` explicitly installs the project in editable mode (so `import genai_services` works)
-- The `--force-reinstall` flag ensures the package is properly installed even if it was previously installed incorrectly
+## 2. Development Patterns
 
-**Why you might see `ModuleNotFoundError: No module named 'genai_services'`:**
-- You're running the script as a file path instead of a module (see below)
-- You haven't run `uv pip install -e . --force-reinstall` after `uv sync`
-- You used `uv run pip install -e .` (wrong - use `uv pip install -e .` instead)
-- The package was installed but not in editable mode correctly
+### FastAPI
+- **Model Loading**: Lifespan context managers
+- **Model Storage**: Module-level `models = {}` dict or `app.state`
+- **Response Types**: `StreamingResponse` for audio/images, Pydantic for JSON
+- **Background Tasks**: Use `BackgroundTasks` for PDF extraction, vector storage. Errors are silent - add explicit `loguru.logger` logging.
 
-**Solution**: 
-- Run both `uv sync` and `uv pip install -e . --force-reinstall` after restarting your IDE
+### Pydantic
+- **Type Annotations**: `Annotated[type, Field(...)]`
+- **Validation**: `AfterValidator` for complex logic
+- **Computed Fields**: `@computed_field` for derived properties
+- **Settings**: `pydantic-settings` with `.env` (search `BaseSettings`)
 
-## Debugging
+### Async
+- **File I/O**: Always use `aiofiles`
+- **HTTP**: `httpx.AsyncClient` or `aiohttp.ClientSession` with context managers
+- **Concurrent**: `asyncio.gather()` for parallel ops
 
-- VSCode run and debug configurations are in the `.vscode` directory
-- Help setup debug configurations in VSCode if needed when running app services in debug mode
+### ML Models
+- **Device**: `accelerator.device` (MPS for Apple Silicon, else CPU)
+- **Pipelines**: HuggingFace for text generation
+- **Manual**: `AutoModel` + `AutoProcessor` for audio/custom
 
-## Testing
+### RAG/Vector DB
+- **Client**: `AsyncQdrantClient` for async operations
+- **Collections**: Check exists before creating; use `recreate_collection` with `return`
+- **Embeddings**: jina-embeddings-v2-base-en (768d) via `AutoModel.from_pretrained`
+- **Chunking**: 512 characters default
+- **Search**: Cosine distance, 0.7 score threshold
+- **Pipeline**: Extract → Clean → Chunk → Embed → Store → Retrieve → Generate
+- **Background**: PDF extraction + vector storage in `BackgroundTasks` - errors may be silent
 
-- Test files: `tests/test_*.py`
-- Use pytest fixtures for FastAPI client testing
-- Run with `uv run pytest -v` for verbose output
+### Code Style
+- **Line Length**: ruff config
+- **Quotes**: Single quotes
+- **Imports**: Sorted with ruff, first-party = `genai_services`
+- **Type Hints**: Required everywhere (pyrefly strict)
+- **Docstrings**: Simple one-liners
+- **Logging**: `loguru` logger (`from loguru import logger`)
 
-## Extensibility & Future-Proofing
+## 3. Commands & Discovery
 
-### Adding New Modules
+### Essential Commands
+```bash
+# Dependencies
+uv sync                                  # Install all
+uv pip install -e . --force-reinstall    # Install project in editable mode
+uv add <package>                         # Add package
 
-When creating new feature modules:
-1. Follow the `partN/` or `partN/project_name/` structure (use underscores, not hyphens)
-2. Include these files as needed:
-   - `api_*.py` - FastAPI routes and lifespan
-   - `schemas.py` - Request/response models
-   - `models.py` - ML model code (if applicable)
-   - `dependencies.py` - FastAPI dependencies
-   - `*_utils.py` - Module-specific utilities
-3. Update this file (`CLAUDE.md` or `AGENTS.md`) if introducing new conventions
+# Testing & Quality
+uv run pytest                            # All tests
+uv run pytest tests/test_*.py -v        # Specific pattern
+uv run pre-commit run --all-files       # All linters
+uv run ruff check .                     # Lint
+uv run ruff format .                    # Format
+uv run pyrefly check .                 # Type check
 
-### Adapting to New Tech
+# Running Services
+uv run fastapi dev <path/to/api_*.py>   # FastAPI dev server
+uv run bentoml serve <path/to/bento.py>:<ServiceClass>
+uv run streamlit run <path/to/streamlit_app.py>
 
-If the stack evolves (e.g., new package manager, framework):
-1. Update **Tech Stack** section with new tooling
-2. Update **Essential Commands** with new command patterns
-3. Update **What NOT to Do** with deprecated practices
-4. Keep **Key Patterns** focused on current conventions
+# Running Scripts (as module, not file path)
+uv run python -m genai_services.part2.project_2_rag.service
 
-### Multi-Project Usage
+# Vector DB (Qdrant)
+curl http://localhost:6333/collections/<collection_name>
+curl http://localhost:6333/collections
+```
 
-To adapt this template for other projects:
-1. Update **Project Identity** (name, purpose, package name)
-2. Replace **Architecture** with your module structure
-3. Keep **Key Patterns** relevant to your stack
-4. Update **Tech Stack** and **Code Style** to match your tools
-5. Customize **Agent-Specific Guidance** for your workflows
+### File Discovery
+```bash
+# Find components
+grep -r "FastAPI(" src/ --include="*.py"
+grep -r "streamlit" src/ --include="*.py"
+grep -r "BaseModel" src/ --include="schemas.py"
+find . -name "settings.py" -o -name "*config*.py"
+grep -r "def load_.*_model" src/ --include="*.py"
+grep -r "@app\.(get|post|put|delete)" src/ --include="*.py"
+grep -r "aiofiles" src/ --include="*.py"
+```
+
+### File Discovery Patterns
+- **API**: `api_*.py` or `FastAPI()` instantiation
+- **Schemas**: `schemas.py` or `BaseModel` subclasses
+- **ML Models**: `models.py` or `load_*_model()` functions
+- **Settings**: `settings.py` or `BaseSettings` subclasses
+- **Utils**: `utils.py` for shared helpers
+- **Tests**: `tests/test_*.py`
+
+### Code Reading Order
+1. `api_*.py` → endpoints, request flow
+2. `schemas.py` → data models, validation
+3. `models.py` → ML model loading
+4. `dependencies.py` → FastAPI dependencies
+5. `*.py` → business logic
+
+### Common Patterns to Search
+- **File Upload**: `UploadFile` or `aiofiles`
+- **Web Scraping**: `aiohttp.ClientSession` or `BeautifulSoup`
+- **Text Generation**: `generate_text()` or HuggingFace `pipeline()`
+- **Buffers**: `BytesIO` conversions
+- **Async Context**: `@asynccontextmanager`
+
+## 4. Development Rules
+
+### ✅ What to Do
+- Use `uv sync` + `uv pip install -e . --force-reinstall` after IDE restart
+- Use `uv add <package>` for dependencies
+- Use `uv run <command>` for commands
+- Run scripts as modules: `uv run python -m genai_services.module`
+- Use `loguru.logger` for logging
+- Use `aiofiles` for async file I/O
+
+### ❌ What NOT to Do
+- Don't use `pip install` (use `uv add` or `uv sync`)
+- Don't use `uv run pip install -e .` (use `uv pip install -e .`)
+- Don't run scripts as file paths: `uv run python src/.../script.py`
+- Don't run Python without `uv run` prefix
+- Don't scatter utilities (consolidate in `utils.py`)
+- Don't add dependencies without version constraints
+- Don't use `print()` for logging
+- Don't use `open()` for async code
+- Don't convert `PageObject` to string (use `.extract_text()` for pypdf)
+- Don't assume background tasks succeed (add logging)
+- Don't use `query_vector=` with Qdrant's `query_points()` (use `query=`)
+
+### Adding New Features
+
+**API Endpoints**
+- Add to `api_*.py` (find via: `find src -name "api_*.py"`)
+- Use lifespan for models, Pydantic schemas, type hints
+
+**Pydantic Models**
+- Add to `schemas.py` or create if absent
+- Use `Annotated[type, Field(...)]` pattern
+
+**ML Models**
+- Add loading logic to `models.py`
+- Add to lifespan context manager
+- Store in `models` dict
+
+**Dependencies**
+- Use `uv add <package>` (updates `pyproject.toml`)
+
+**Environment Variables**
+- Add to settings file (search `BaseSettings`)
+- Document in `.env.example`
+
+## 5. Debugging
+
+### Systematic Approach
+
+**1. API Layer**
+- Read stack traces bottom-to-top
+- Identify exact failing line/operation
+- Check API docs for correct parameters
+- Use Context7 MCP to verify API contracts
+
+**2. Data Pipeline**
+- Verify data at each stage (don't assume prior stages worked)
+- RAG: PDF → text → embeddings → vector DB → retrieval
+- Inspect intermediate outputs (files, DB state, API responses)
+- Use CLI tools to verify external service state
+
+**3. Type & Contract Validation**
+- Check function signatures match API docs
+- Verify data types match downstream expectations
+- Don't trust variable names - verify actual parameter names
+
+**4. External Service State**
+- Check DBs/APIs contain expected data
+- Qdrant: Verify collection exists, point count > 0
+- Files: Verify actual content, not metadata
+- Don't assume background tasks completed
+
+**5. Logging**
+- Add logging at pipeline boundaries
+- Log inputs/outputs (sizes, counts, errors)
+- Background tasks: Explicit success/failure logging
+- Use `loguru.logger.debug()` for troubleshooting
+
+**6. Isolated Testing**
+- Test components independently
+- Create minimal reproduction scripts
+- Verify retrieval before generation
+- Test embedding separately from storage
+
+### Commands
+```bash
+# External service state
+curl http://localhost:6333/collections/<name>
+docker ps
+docker logs <container_id>
+
+# Data quality
+head -30 <file.txt>
+cat <file.txt> | wc -l
+
+# Interactive testing
+uv run python
+# >>> from genai_services.module import func
+# >>> result = func(test_input)
+
+# Logs
+tail -f <log_file>
+```
+
+### Checklist
+1. ✅ Read full stack trace - identify failing operation
+2. ✅ Verify API parameters against docs
+3. ✅ Check external service state (DB, files)
+4. ✅ Verify data at each pipeline stage
+5. ✅ Add logging before investigating
+6. ✅ Test component in isolation
+7. ✅ Check background tasks completed (logs, DB)
+8. ✅ Validate types/shapes match contracts
+
+## 6. RAG-Specific Guidance
+
+### Common Pitfalls
+- **PDF Extraction**: Must call `page.extract_text()`, not convert `PageObject` to string
+- **Qdrant API**: Use `query=` parameter, not `query_vector=` in `query_points()`
+- **Collection Logic**: Add `return` after `recreate_collection` to prevent duplicate creation
+- **Background Tasks**: Errors are silent - check logs and vector DB state directly
+- **Empty Results**: Verify pipeline end-to-end: PDF → text → vector DB points → retrieval
+
+### Verification Steps
+1. Check collection: `curl http://localhost:6333/collections/<name>`
+2. Verify point count > 0 before testing retrieval
+3. Check `.txt` files contain text, not PDF metadata
+4. Test retrieval independently before generation
+5. Validate similarity scores (typically > 0.7)
