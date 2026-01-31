@@ -140,3 +140,7 @@ qdrant_storage/
 
 # RAG 
 uploads/
+
+# Claude 
+.claude/
+.claude-cache/
