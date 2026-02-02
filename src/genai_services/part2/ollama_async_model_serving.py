@@ -72,10 +72,10 @@ class OllamaEndpointConfig(BaseModel):
 LOCAL_CONFIG = OllamaEndpointConfig(
     base_url="http://localhost:11434",
     api_path="v1/chat/completions",
-    default_model="tinyllama:latest",
+    default_model="tinyllama",
     allowed_models=frozenset(
         [
-            "tinyllama:latest",
+            "tinyllama",
         ]
     ),
     requires_auth=False,
@@ -155,7 +155,9 @@ async def generate_text_completion(
     try:
         config.validate_model(model_name)
     except ValueError as e:
-        raise ValueError(f"Model {model_name} is not allowed for this endpoint") from e
+        raise ValueError(
+            f"Model {model_name} is not allowed for this endpoint, allowed models: {config.allowed_models}"
+        ) from e
 
     # Build headers
     headers: dict[str, str] = {"Content-Type": "application/json"}
