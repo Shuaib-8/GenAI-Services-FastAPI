@@ -8,18 +8,21 @@ A workspace for building generative AI services with FastAPI and Streamlit, mana
 .
 ├── src
 │   └── genai_services
+│       ├── __pycache__
 │       ├── part1 # Developing AI Services 
 │       ├── part2 # Communicating with External Services
 │       ├── __init__.py
-│       ├── tinyllama.py
-│       └── utils.py
-├── tests
+│       ├── settings.py # Settings/environment variables for the application
+│       ├── tinyllama.py 
+│       └── utils.py # Utility functions for the application
+├── tests # Tests for the application
 │   ├── __init__.py
-│   └── test_main.py
-├── pyproject.toml
-├── README.md
-├── settings.py
-└── uv.lock
+│   └── test_main.py # Test for the main function
+├── AGENTS.md -> CLAUDE.md # Agents documentation for non Claude agents (symlink to CLAUDE.md)
+├── CLAUDE.md # Claude definition of the agents (source of truth for the agents)
+├── pyproject.toml # Project configuration
+├── README.md 
+└── uv.lock # Lock file for the project
 ```
 
 ## Requirements
