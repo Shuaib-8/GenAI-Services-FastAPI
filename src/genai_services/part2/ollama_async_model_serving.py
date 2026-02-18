@@ -8,7 +8,6 @@ Supports both local (localhost:11434) and cloud (ollama.com) endpoints.
 from typing import Any, Self
 
 import aiohttp
-from aiohttp import ClientResponse
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -180,11 +179,9 @@ async def generate_text_completion(
 
     try:
         async with aiohttp.ClientSession() as session:
-            response: ClientResponse = await session.post(
-                config.url, json=data, headers=headers
-            )
-            response.raise_for_status()  # type: ignore
-            predictions = await response.json()  # type: ignore
+            async with session.post(config.url, json=data, headers=headers) as response:
+                response.raise_for_status()  # type: ignore
+                predictions = await response.json()  # type: ignore
     except aiohttp.ClientError as e:
         logger.error(f"HTTP error during text generation: {e}")
         raise
@@ -208,7 +205,7 @@ async def quick_test() -> None:
     test_message = "What is Python? Answer in one sentence."
     logger.info(f"Test prompt: {test_message}")
     response = await generate_text_completion(
-        test_message, model="tinyllama:latest", config=LOCAL_CONFIG
+        test_message, model="tinyllama", config=LOCAL_CONFIG
     )
     logger.success(f"Response: {response}")
     logger.success("Quick test completed successfully!")
